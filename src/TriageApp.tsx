@@ -110,19 +110,19 @@ export default function TriageApp() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
-      <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 top-0 sticky z-10">
+      <header className="h-auto sm:h-16 py-4 sm:py-0 bg-white border-b border-slate-200 px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between shrink-0 top-0 sticky z-10 gap-4 sm:gap-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-sm">
             TS
           </div>
           <span className="font-bold tracking-tight text-lg text-slate-900">TRIAGEM SOCIAL</span>
           <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded border border-slate-200 uppercase font-bold tracking-wider ml-4">
-            {user.role}
+            {user.role === 'supervisor' ? 'cadastro' : user.role}
           </span>
         </div>
         <div className="flex items-center gap-4 text-sm font-medium text-slate-600">
           <span className="text-slate-400 italic hidden sm:inline">Unidade: Centro de Atendimento Social</span>
-          <span className="ml-4 font-semibold text-slate-800">{user.name}</span>
+          <span className="font-semibold text-slate-800">{user.name}</span>
           <button 
             onClick={() => setUser(null)}
             className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-700 rounded text-xs font-semibold border border-slate-200 hover:bg-slate-200 transition-colors shadow-sm"
@@ -132,7 +132,7 @@ export default function TriageApp() {
         </div>
       </header>
       
-      <main className="flex-1 p-8 w-full max-w-7xl mx-auto flex flex-col min-h-0">
+      <main className="flex-1 p-4 sm:p-8 w-full max-w-7xl mx-auto flex flex-col min-h-0">
         {user.role === 'atendente' && <AtendenteView user={user} />}
         {user.role === 'supervisor' && <SupervisorView user={user} />}
         {user.role === 'gestor' && <GestorView user={user} />}

@@ -73,7 +73,7 @@ export default function UserManagement() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Gerenciamento de Usuários</h2>
-          <p className="text-sm text-slate-500">Adicione e gerencie atendentes e supervisores.</p>
+          <p className="text-sm text-slate-500">Adicione e gerencie atendentes e cadastros.</p>
         </div>
         <button 
           onClick={openNewModal}
@@ -83,13 +83,13 @@ export default function UserManagement() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto border border-slate-200 rounded-lg">
+      <div className="flex-1 overflow-x-auto border border-slate-200 rounded-lg">
         {errorMsg ? (
           <div className="p-8 text-center text-red-500 font-medium">{errorMsg}</div>
         ) : users.length === 0 ? (
           <div className="p-8 text-center text-slate-500 font-medium">Nenhum usuário cadastrado.</div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-600">
+          <table className="w-full text-left text-sm text-slate-600 min-w-[600px]">
             <thead className="text-xs uppercase bg-slate-50 text-slate-500 border-b border-slate-200 sticky top-0">
               <tr>
                 <th className="px-6 py-3 font-semibold">Nome</th>
@@ -107,7 +107,7 @@ export default function UserManagement() {
                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider
                       ${u.role === 'gestor' ? 'bg-purple-100 text-purple-700' : 
                         u.role === 'supervisor' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                      {u.role}
+                      {u.role === 'supervisor' ? 'cadastro' : u.role}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -177,7 +177,7 @@ export default function UserManagement() {
                   value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}
                 >
                   <option value="atendente">Atendente</option>
-                  <option value="supervisor">Supervisor</option>
+                  <option value="supervisor">Cadastro</option>
                 </select>
               </div>
               <div className="pt-4 flex gap-3">

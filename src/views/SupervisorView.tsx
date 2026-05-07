@@ -59,19 +59,19 @@ export default function SupervisorView({ user }: { user: User }) {
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col min-h-0 h-full">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 shrink-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-slate-200 shrink-0 gap-4 sm:gap-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Gestão de Filas</h1>
           <p className="text-sm font-medium text-slate-500 mt-1">Acompanhe a triagem e chame os pacientes em tempo real.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <button 
             onClick={loadFila}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors shadow-sm"
+            className="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors shadow-sm whitespace-nowrap"
           >
             <RefreshCw size={16} /> Atualizar Fila
           </button>
-          <div className="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3">
+          <div className="flex-1 sm:flex-none justify-between bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm flex items-center gap-3">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Minha Sala:</span>
             <select 
               className="border-none text-sm font-semibold text-slate-800 focus:ring-0 cursor-pointer bg-slate-50 px-2 py-1 rounded"

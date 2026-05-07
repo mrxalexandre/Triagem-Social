@@ -29,34 +29,34 @@ export default function GestorView({ user }: { user: User }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-6 h-full min-h-0">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200 shrink-0">
+    <div className="max-w-6xl mx-auto flex flex-col gap-6 h-full min-h-0 overflow-y-auto sm:overflow-visible pb-12 sm:pb-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-200 shrink-0 gap-4 sm:gap-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Portal do Gestor</h1>
           <p className="text-sm font-medium text-slate-500 mt-1">Gerencie a operação e a equipe de atendimento.</p>
         </div>
-        <div className="flex bg-slate-100 p-1 rounded-lg">
+        <div className="flex flex-wrap sm:flex-nowrap bg-slate-100 p-1 rounded-lg gap-1 w-full sm:w-auto overflow-x-auto">
           <button 
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'dashboard' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'dashboard' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <LayoutDashboard size={16} /> Dashboard
           </button>
           <button 
             onClick={() => setActiveTab('supervisor')}
-            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'supervisor' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'supervisor' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <MonitorPlay size={16} /> Fila / Triagem
           </button>
           <button 
             onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'users' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'users' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <Users size={16} /> Equipe
           </button>
           <button 
             onClick={() => setActiveTab('services')}
-            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'services' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'services' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <List size={16} /> Serviços
           </button>
@@ -72,20 +72,20 @@ export default function GestorView({ user }: { user: User }) {
       ) : activeTab === 'supervisor' ? (
         <SupervisorView user={user} />
       ) : stats ? (
-        <div className="flex-1 flex flex-col gap-6 min-h-0">
-          <div className="flex justify-between items-center shrink-0">
+        <div className="flex-1 flex flex-col gap-6 min-h-0 pb-12 sm:pb-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center shrink-0 gap-4 sm:gap-0">
             <h2 className="text-lg font-bold text-slate-800">Visão Geral da Operação</h2>
-            <div className="flex items-center gap-3">
-              <button onClick={handleExportCSV} className="flex items-center gap-2 px-4 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700 rounded text-sm font-semibold transition-colors shadow-sm">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full sm:w-auto">
+              <button onClick={handleExportCSV} className="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700 rounded text-sm font-semibold transition-colors shadow-sm whitespace-nowrap">
                 <Download size={16} /> Dados.CSV
               </button>
-              <button onClick={handleExportPDF} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold transition-colors shadow-sm">
-                <FileText size={16} /> Relatório Resumo (PDF)
+              <button onClick={handleExportPDF} className="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold transition-colors shadow-sm whitespace-nowrap">
+                <FileText size={16} /> Resumo (PDF)
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 shrink-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 shrink-0">
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total de Hoje</p>
               <h3 className="text-2xl font-bold mt-1 text-slate-900">{stats.total}</h3>
@@ -108,8 +108,8 @@ export default function GestorView({ user }: { user: User }) {
             </div>
           </div>
 
-          <div className="flex-1 flex gap-6 min-h-0">
-            <div className="flex-[2] bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+            <div className="flex-[2] bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-[400px] lg:h-auto min-h-0">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-slate-800 text-sm">Volumetria de Atendimentos</h3>
               </div>

@@ -74,32 +74,32 @@ export default function PublicMonitor({ onBack }: { onBack: () => void }) {
         </button>
       </header>
 
-      <div className="flex-1 flex" style={{ height: 'calc(100vh - 65px)' }}>
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden lg:h-[calc(100vh-65px)]">
         {/* Main Calling Box (Left side, 60%) */}
-        <div className="w-3/5 flex flex-col justify-center items-center p-8 border-r border-slate-800 bg-slate-900 relative">
+        <div className="w-full lg:w-3/5 flex flex-col justify-center items-center py-12 px-4 lg:p-8 border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-900 relative">
           {called ? (
             <div className="text-center w-full max-w-2xl animate-in zoom-in duration-500">
-              <div className="inline-flex items-center gap-3 bg-blue-500/20 text-blue-400 px-6 py-2 rounded-full mb-6">
-                <Volume2 size={24} />
-                <span className="text-lg font-medium tracking-wider uppercase">Por favor, dirija-se à sala</span>
+              <div className="inline-flex items-center gap-2 sm:gap-3 bg-blue-500/20 text-blue-400 px-4 sm:px-6 py-2 rounded-full mb-6">
+                <Volume2 size={24} className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="text-sm sm:text-lg font-medium tracking-wider uppercase whitespace-nowrap">Por favor, dirija-se à sala</span>
               </div>
-              <h2 className="text-[10rem] font-black leading-none tracking-tighter text-white drop-shadow-2xl mb-6">
+              <h2 className="text-[6rem] sm:text-[10rem] font-black leading-none tracking-tighter text-white drop-shadow-2xl mb-6">
                 {called.senha}
               </h2>
-              <div className="bg-slate-800/80 border border-slate-700 rounded-3xl p-8 backdrop-blur-sm shadow-2xl">
-                <p className="text-2xl text-slate-400 mb-2 font-medium">Paciente Chamado</p>
-                <p className="text-5xl font-bold text-white mb-6 truncate">{called.nome_completo}</p>
+              <div className="bg-slate-800/80 border border-slate-700 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-2xl">
+                <p className="text-xl sm:text-2xl text-slate-400 mb-2 font-medium">Paciente Chamado</p>
+                <p className="text-3xl sm:text-5xl font-bold text-white mb-6 truncate">{called.nome_completo}</p>
                 <hr className="border-slate-700 mb-6" />
-                <p className="text-6xl font-black text-amber-400 uppercase tracking-tight">{called.sala}</p>
+                <p className="text-4xl sm:text-6xl font-black text-amber-400 uppercase tracking-tight">{called.sala}</p>
               </div>
             </div>
           ) : (
-            <div className="text-slate-600 text-3xl font-medium">Aguardando chamada...</div>
+            <div className="text-slate-600 text-xl sm:text-3xl font-medium p-8">Aguardando chamada...</div>
           )}
         </div>
 
         {/* Right side Panels (40%) */}
-        <div className="w-2/5 flex flex-col bg-slate-900 border-l border-slate-800">
+        <div className="w-full lg:w-2/5 flex flex-col bg-slate-900 lg:border-l border-slate-800">
           
           {/* Fila (Aguardando) Section */}
           <div className="flex-1 flex flex-col border-b border-slate-800 p-6 overflow-hidden">
