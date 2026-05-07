@@ -43,7 +43,32 @@ export const api = {
     const today = new Date().toISOString().split('T')[0];
     const todayCount = atdsArray.filter((a: any) => new Date(a.created_at).toISOString().split('T')[0] === today).length;
     
-    const prefix = servico === 'BPC' ? 'BPC' : (servico === 'Recadastro do BF' ? 'REC' : (servico === 'Cadastro do BF' ? 'CAD' : 'VIST'));
+    const exactMatch = ["Recadastro do BF","Cadastro do BF","Solicitação de visita","BPC"].includes(servico);
+    
+    let mappedServico = servico;
+    let prefix = 'OUTR';
+    let initialObs = 'Nenhuma';
+    
+    if (!exactMatch) {
+      const sLower = servico.toLowerCase();
+      if (sLower.includes('cadastro') || sLower.includes('cadastral') || sLower.includes('exclusão') || sLower.includes('transferência')) {
+        mappedServico = 'Cadastro do BF';
+        prefix = 'CAD';
+      } else if (sLower.includes('bpc') || sLower.includes('idoso') || sLower.includes('deficiência') || sLower.includes('passe livre') || sLower.includes('benefício')) {
+        mappedServico = 'BPC';
+        prefix = 'BPC';
+      } else if (sLower.includes('visita')) {
+        mappedServico = 'Solicitação de visita';
+        prefix = 'VIST';
+      } else {
+        mappedServico = 'Recadastro do BF';
+        prefix = 'OUTR';
+      }
+      initialObs = JSON.stringify({ _sv: servico, obs: 'Nenhuma' });
+    } else {
+      prefix = servico === 'BPC' ? 'BPC' : (servico === 'Recadastro do BF' ? 'REC' : (servico === 'Cadastro do BF' ? 'CAD' : 'VIST'));
+    }
+
     const num = String(todayCount + 1).padStart(3, '0');
     const senha = `${prefix}` + (prioridade ? 'P' : '') + `-${num}`;
 
@@ -52,14 +77,14 @@ export const api = {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         paciente_id: paciente.id,
-        servico,
+        servico: mappedServico,
         senha,
         status: 'aguardando',
         prioridade: !!prioridade,
         atendente_id,
         supervisor_id: 1, // fallback se precisar
         sala: 'Aguardando',
-        observacoes: 'Nenhuma'
+        observacoes: initialObs
       })
     });
     const insertAtd = await createAtdRes.json();
@@ -80,9 +105,22 @@ export const api = {
     const pacsArray = Array.isArray(pacs) ? pacs : [];
     
     return atdsArray.map((a: any) => {
+      let realServico = a.servico;
+      let realObs = a.observacoes;
+      
+      if (typeof a.observacoes === 'string' && a.observacoes.startsWith('{"_sv":')) {
+        try {
+          const parsed = JSON.parse(a.observacoes);
+          if (parsed._sv) realServico = parsed._sv;
+          if (parsed.obs !== undefined) realObs = parsed.obs;
+        } catch(e) {}
+      }
+
       const pac = pacsArray.find((p: any) => p.id === a.paciente_id) || {};
       return {
         ...a,
+        servico: realServico,
+        observacoes: realObs,
         nome_completo: pac.nome_completo,
         cpf: pac.cpf,
         endereco: pac.endereco,
@@ -101,6 +139,24 @@ export const api = {
     const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
     const atd = await atdRes.json();
     
+    let baseObs = observacoes_supervisor || '';
+    if (!observacoes_supervisor) {
+       let existingObsRaw = atd.observacoes || '';
+       let extractedObs = existingObsRaw;
+       if (typeof existingObsRaw === 'string' && existingObsRaw.startsWith('{"_sv":')) {
+         try { extractedObs = JSON.parse(existingObsRaw).obs || ''; } catch(e){}
+       }
+       baseObs = extractedObs;
+    }
+    
+    let newObsBody = baseObs;
+    if (typeof atd.observacoes === 'string' && atd.observacoes.startsWith('{"_sv":')) {
+       try {
+          const parsed = JSON.parse(atd.observacoes);
+          newObsBody = JSON.stringify({ _sv: parsed._sv, obs: baseObs });
+       } catch(e) {}
+    }
+
     const updateRes = await fetch(`${XANO_URL}/atendimentos/${id}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json'},
@@ -108,7 +164,7 @@ export const api = {
         ...atd,
         status: 'em_atendimento',
         sala,
-        observacoes: observacoes_supervisor || atd.observacoes,
+        observacoes: newObsBody,
         supervisor_id: supervisor_id || atd.supervisor_id,
         called_at: Date.now() // Record when called to show on monitor
       })
@@ -140,10 +196,18 @@ export const api = {
     const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
     const atd = await atdRes.json();
     
+    let baseObs = observacoes;
+    if (typeof atd.observacoes === 'string' && atd.observacoes.startsWith('{"_sv":')) {
+      try {
+        const parsed = JSON.parse(atd.observacoes);
+        baseObs = JSON.stringify({ _sv: parsed._sv, obs: observacoes });
+      } catch(e){}
+    }
+
     await fetch(`${XANO_URL}/atendimentos/${id}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ ...atd, observacoes })
+      body: JSON.stringify({ ...atd, observacoes: baseObs })
     });
   },
 
@@ -158,7 +222,13 @@ export const api = {
     
     const servicos: Record<string, number> = {};
     atdsArray.forEach((a: any) => {
-      servicos[a.servico] = (servicos[a.servico] || 0) + 1;
+      let realServico = a.servico;
+      if (typeof a.observacoes === 'string' && a.observacoes.startsWith('{"_sv":')) {
+        try {
+          realServico = JSON.parse(a.observacoes)._sv || a.servico;
+        } catch(e){}
+      }
+      servicos[realServico] = (servicos[realServico] || 0) + 1;
     });
     const byService = Object.keys(servicos).map(s => ({ servico: s, c: servicos[s] }));
 
@@ -173,14 +243,26 @@ export const api = {
 
     const data = (Array.isArray(atds) ? atds : []).map((a: any) => {
       const pac = (Array.isArray(pacs) ? pacs : []).find((p: any) => p.id === a.paciente_id) || {};
+      
+      let realServico = a.servico;
+      let realObs = a.observacoes;
+      if (typeof a.observacoes === 'string' && a.observacoes.startsWith('{"_sv":')) {
+        try {
+          const parsed = JSON.parse(a.observacoes);
+          realServico = parsed._sv || a.servico;
+          realObs = parsed.obs;
+        } catch(e){}
+      }
+      
       return {
         id: a.id,
         nome_completo: pac.nome_completo,
         cpf: pac.cpf,
-        servico: a.servico,
+        servico: realServico,
         status: a.status,
         senha: a.senha,
         sala: a.sala,
+        observacoes: realObs,
         created_at: new Date(a.created_at).toLocaleString()
       };
     }).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -194,7 +276,7 @@ export const api = {
     for (const row of data) {
       const values = headers.map(header => {
         const val = row[header];
-        return `"${String(val).replace(/"/g, '""')}"`;
+        return `"${String(val || '').replace(/"/g, '""')}"`;
       });
       csvRows.push(values.join(','));
     }
