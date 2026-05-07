@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../TriageApp';
 import { Send, CheckCircle2 } from 'lucide-react';
 
@@ -11,13 +11,23 @@ export default function AtendenteView({ user }: { user: User }) {
     telefone: '',
     endereco: '',
     cidade: "Olho d'Água das Flores, AL",
-    servico: 'Cadastro novo',
+    servico: '',
     prioridade: false
   });
   
   const [ticket, setTicket] = useState<{ id: number, senha: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [serviceGroups, setServiceGroups] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.getServicosConfig().then(groups => {
+      setServiceGroups(groups);
+      if (groups.length > 0 && groups[0].servicos.length > 0) {
+        setFormData(prev => ({ ...prev, servico: groups[0].servicos[0] }));
+      }
+    });
+  }, []);
 
   const isValidCPF = (cpf: string) => {
     const numbers = cpf.replace(/[^\d]+/g, '');
@@ -170,31 +180,13 @@ export default function AtendenteView({ user }: { user: User }) {
               value={formData.servico}
               onChange={e => setFormData({...formData, servico: e.target.value})}
             >
-              <optgroup label="Atendimento Cadúnico">
-                <option value="Cadastro novo">Cadastro novo</option>
-                <option value="Atualização cadastral">Atualização cadastral</option>
-                <option value="Exclusão">Exclusão</option>
-                <option value="Transferência">Transferência</option>
-                <option value="Agendamento de Visita domiciliar">Agendamento de Visita domiciliar</option>
-              </optgroup>
-              <optgroup label="Serviço Social">
-                <option value="Requerimento BPC">Requerimento BPC</option>
-                <option value="Processo de avaliação BPC">Processo de avaliação BPC</option>
-                <option value="Orientação Social">Orientação Social</option>
-                <option value="Requerimento de carteira do idoso">Requerimento de carteira do idoso</option>
-                <option value="Requerimento carteira da pessoa com deficiência">Requerimento carteira da pessoa com deficiência</option>
-                <option value="Carteira CIPTEA">Carteira CIPTEA</option>
-                <option value="Solicitação Passe Livre">Solicitação Passe Livre</option>
-                <option value="Inclusão ou consulta CRIA">Inclusão ou consulta CRIA</option>
-                <option value="Requerimento ou renovação de Benefício Eventual">Requerimento ou renovação de Benefício Eventual</option>
-              </optgroup>
-              <optgroup label="Coordenação de programas sociais">
-                <option value="Atendimento Olho d' Água Feliz">Atendimento Olho d' Água Feliz</option>
-                <option value="Atendimento Programa do Leite">Atendimento Programa do Leite</option>
-              </optgroup>
-              <optgroup label="Gestão">
-                <option value="Secretário(a)">Secretário(a)</option>
-              </optgroup>
+              {serviceGroups.map(group => (
+                <optgroup key={group.grupo} label={group.grupo}>
+                  {group.servicos.map((svc: string) => (
+                    <option key={svc} value={svc}>{svc}</option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 

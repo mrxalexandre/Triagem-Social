@@ -392,5 +392,45 @@ export const api = {
   },
   deleteUser: async (id: number) => {
     await fetch(`${XANO_URL}/users/${id}`, { method: 'DELETE' });
+  },
+
+  getServicosConfig: async () => {
+    try {
+      const res = await fetch(`${XANO_URL}/users`);
+      const users = await res.json();
+      const configUser = (Array.isArray(users) ? users : []).find((u: any) => u.email === 'config_servicos_app@sys.com');
+      if (configUser && configUser.name && configUser.name.startsWith('[')) {
+        return JSON.parse(configUser.name);
+      }
+    } catch(e) {}
+    
+    // Default fallback
+    return [
+      { grupo: "Atendimento Cadúnico", servicos: ["Cadastro novo", "Atualização cadastral", "Exclusão", "Transferência", "Agendamento de Visita domiciliar"] },
+      { grupo: "Serviço Social", servicos: ["Requerimento BPC", "Processo de avaliação BPC", "Orientação Social", "Requerimento de carteira do idoso", "Requerimento carteira da pessoa com deficiência", "Carteira CIPTEA", "Solicitação Passe Livre", "Inclusão ou consulta CRIA", "Requerimento ou renovação de Benefício Eventual"] },
+      { grupo: "Coordenação de programas sociais", servicos: ["Atendimento Olho d' Água Feliz", "Atendimento Programa do Leite"] },
+      { grupo: "Gestão", servicos: ["Secretário(a)"] }
+    ];
+  },
+
+  saveServicosConfig: async (config: any) => {
+    const configStr = JSON.stringify(config);
+    const res = await fetch(`${XANO_URL}/users`);
+    const users = await res.json();
+    const configUser = (Array.isArray(users) ? users : []).find((u: any) => u.email === 'config_servicos_app@sys.com');
+    
+    if (configUser) {
+      await fetch(`${XANO_URL}/users/${configUser.id}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name: configStr })
+      });
+    } else {
+      await fetch(`${XANO_URL}/users`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name: configStr, email: 'config_servicos_app@sys.com', password: 'admin', role: 'gestor' })
+      });
+    }
   }
 };

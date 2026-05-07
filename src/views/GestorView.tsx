@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../TriageApp';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download, FileText, Users, Clock, CheckCircle, LayoutDashboard, MonitorPlay } from 'lucide-react';
+import { Download, FileText, Users, Clock, CheckCircle, LayoutDashboard, MonitorPlay, List } from 'lucide-react';
 import UserManagement from './UserManagement';
 import SupervisorView from './SupervisorView';
+import ServiceManagement from './ServiceManagement';
 import { api } from '../api';
 
 export default function GestorView({ user }: { user: User }) {
   const [stats, setStats] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'supervisor'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'supervisor' | 'services'>('dashboard');
 
   useEffect(() => {
     api.getStats()
@@ -53,8 +54,18 @@ export default function GestorView({ user }: { user: User }) {
           >
             <Users size={16} /> Equipe
           </button>
+          <button 
+            onClick={() => setActiveTab('services')}
+            className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'services' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+          >
+            <List size={16} /> Serviços
+          </button>
         </div>
       </div>
+
+      {activeTab === 'services' && (
+        <ServiceManagement onClose={() => setActiveTab('dashboard')} />
+      )}
 
       {activeTab === 'users' ? (
         <UserManagement />
