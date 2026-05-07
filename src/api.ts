@@ -365,7 +365,8 @@ export const api = {
 
   getUsers: async () => {
     const res = await fetch(`${XANO_URL}/users`);
-    return res.json();
+    const users = await res.json();
+    return (Array.isArray(users) ? users : []).filter(u => u.email !== 'config_servicos_app@sys.com');
   },
   createUser: async (data: any) => {
     const res = await fetch(`${XANO_URL}/users`, {
