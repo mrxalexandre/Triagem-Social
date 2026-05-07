@@ -4,6 +4,7 @@ import AtendenteView from './views/AtendenteView';
 import SupervisorView from './views/SupervisorView';
 import GestorView from './views/GestorView';
 import PublicMonitor from './views/PublicMonitor';
+import { api } from './api';
 
 type Role = 'atendente' | 'supervisor' | 'gestor';
 export interface User { id: number; name: string; role: Role; }
@@ -26,14 +27,8 @@ export default function TriageApp() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro no login');
-      setUser({ id: data.id, name: data.name, role: data.role });
+      const userData = await api.login(email, password);
+      setUser({ id: userData.id, name: userData.name, role: userData.role as Role });
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {

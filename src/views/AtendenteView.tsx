@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { User } from '../TriageApp';
 import { Send, CheckCircle2 } from 'lucide-react';
 
+import { api } from '../api';
+
 export default function AtendenteView({ user }: { user: User }) {
   const [formData, setFormData] = useState({
     nome_completo: '',
@@ -48,20 +50,7 @@ export default function AtendenteView({ user }: { user: User }) {
     setErrorMsg('');
     setLoading(true);
     try {
-      const res = await fetch('/api/triagem', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, atendente_id: user.id })
-      });
-      if (!res.ok) {
-        let errMessage = 'Erro na requisição ao servidor';
-        try {
-          const errData = await res.json();
-          if (errData.error) errMessage = errData.error;
-        } catch(e) {}
-        throw new Error(errMessage);
-      }
-      const data = await res.json();
+      const data = await api.createTriagem({ ...formData, atendente_id: user.id });
       if (data.senha) setTicket(data);
     } catch(err: any) {
       if (err.message === 'Failed to fetch') {

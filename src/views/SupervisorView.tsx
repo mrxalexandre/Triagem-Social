@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../TriageApp';
 import { Volume2, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { api } from '../api';
 
 export default function SupervisorView({ user }: { user: User }) {
   const [fila, setFila] = useState<any[]>([]);
@@ -13,9 +14,8 @@ export default function SupervisorView({ user }: { user: User }) {
 
   const loadFila = async () => {
     try {
-      const res = await fetch('/api/fila');
-      const data = await res.json();
-      setFila(Array.isArray(data) ? data : []);
+      const data = await api.getFila();
+      setFila(data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -30,17 +30,19 @@ export default function SupervisorView({ user }: { user: User }) {
   }, []);
 
   const handleChamar = async (id: number) => {
-    await fetch(`/api/chamar/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sala: activeSala, supervisor_id: user.id })
-    });
+    await api.chamar(id, activeSala, '', user.id);
     loadFila();
   };
 
   const handleConcluir = async (id: number) => {
-    await fetch(`/api/concluir/${id}`, { method: 'PUT' });
+    await api.concluir(id);
     loadFila();
+  };
+
+  const updateObservacoes = async (id: number, observacoes: string, defaultObs: string) => {
+    if (observacoes !== defaultObs) {
+      await api.updateObservacoes(id, observacoes);
+    }
   };
 
   const filteredFila = fila.filter(item => {
@@ -223,15 +225,7 @@ export default function SupervisorView({ user }: { user: User }) {
                               <textarea
                                 placeholder="Digite aqui todas as informações importantes deste atendimento..."
                                 className="w-full text-sm p-3 border border-slate-200 rounded-lg bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-y min-h-[100px]"
-                                onBlur={async (e) => {
-                                  if (e.target.value !== item.observacoes) {
-                                    await fetch(`/api/observacoes/${item.id}`, {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ observacoes: e.target.value })
-                                    });
-                                  }
-                                }}
+                                onBlur={(e) => updateObservacoes(item.id, e.target.value, item.observacoes || '')}
                                 defaultValue={item.observacoes || ''}
                               />
                             </div>

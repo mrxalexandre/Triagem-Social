@@ -1,28 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { Volume2, ArrowLeft } from 'lucide-react';
+import { api } from '../api';
 
 export default function PublicMonitor({ onBack }: { onBack: () => void }) {
   const [called, setCalled] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    const sse = new EventSource('/api/events/painel');
-    
-    sse.onmessage = (e) => {
+    let lastCalledId = 0;
+    const fetchEvent = async () => {
       try {
-        const data = JSON.parse(e.data);
-        if (data && data.senha) {
-          // Play a sound if possible (browsers often block this without interaction)
-          setCalled(data);
-          setHistory(prev => {
-            const nh = [data, ...prev.filter(i => i.senha !== data.senha)];
-            return nh.slice(0, 4); // Keep last 4
-          });
+        const fila = await api.getFila();
+        // find most recently called item (em_atendimento)
+        const emAtendimentoAndCalledAtExists = fila.filter((i: any) => i.status === 'em_atendimento' && i.called_at).sort((a: any, b: any) => b.called_at - a.called_at);
+        if (emAtendimentoAndCalledAtExists.length > 0) {
+          const mostRecent = emAtendimentoAndCalledAtExists[0];
+          if (mostRecent.id !== lastCalledId) {
+            lastCalledId = mostRecent.id;
+            setCalled(mostRecent);
+            setHistory(prev => {
+              const nh = [mostRecent, ...prev.filter(i => i.senha !== mostRecent.senha)];
+              return nh.slice(0, 4); // Keep last 4
+            });
+          }
         }
-      } catch(err) {}
+      } catch (err) {}
     };
-
-    return () => sse.close();
+    
+    fetchEvent();
+    const interval = setInterval(fetchEvent, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   return (

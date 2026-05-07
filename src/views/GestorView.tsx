@@ -4,17 +4,14 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { Download, FileText, Users, Clock, CheckCircle, LayoutDashboard, MonitorPlay } from 'lucide-react';
 import UserManagement from './UserManagement';
 import SupervisorView from './SupervisorView';
+import { api } from '../api';
 
 export default function GestorView({ user }: { user: User }) {
   const [stats, setStats] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'supervisor'>('dashboard');
 
   useEffect(() => {
-    fetch('/api/dashboard/stats')
-      .then(r => {
-        if (!r.ok) throw new Error('Falha ao obter stats');
-        return r.json();
-      })
+    api.getStats()
       .then(setStats)
       .catch(err => {
         console.error(err);
@@ -23,11 +20,11 @@ export default function GestorView({ user }: { user: User }) {
   }, []);
 
   const handleExportCSV = () => {
-    window.open('/api/relatorios/exportar', '_blank');
+    api.exportCsv();
   };
 
   const handleExportPDF = () => {
-    window.open('/api/relatorios/analise-ia', '_blank');
+    api.exportPdf();
   };
 
   return (

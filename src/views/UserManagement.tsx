@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, Edit } from 'lucide-react';
+import { api } from '../api';
 
 export default function UserManagement() {
   const [users, setUsers] = useState<any[]>([]);
@@ -15,11 +16,7 @@ export default function UserManagement() {
   const fetchUsers = () => {
     setLoading(true);
     setErrorMsg('');
-    fetch('/api/users')
-      .then(res => {
-        if (!res.ok) throw new Error('Falha HTTP: ' + res.status);
-        return res.json();
-      })
+    api.getUsers()
       .then(data => {
         setUsers(Array.isArray(data) ? data : []);
         setLoading(false);
@@ -51,17 +48,9 @@ export default function UserManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editId) {
-      await fetch(`/api/users/${editId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      await api.updateUser(editId, formData);
     } else {
-      await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      await api.createUser(formData);
     }
     setShowModal(false);
     fetchUsers();
@@ -69,7 +58,7 @@ export default function UserManagement() {
 
   const confirmDelete = async () => {
     if (deleteId) {
-      await fetch(`/api/users/${deleteId}`, { method: 'DELETE' });
+      await api.deleteUser(deleteId);
       setDeleteId(null);
       fetchUsers();
     }
