@@ -1,3 +1,6 @@
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 export const XANO_URL = 'https://x8ki-letl-twmt.n7.xano.io/api:zXMEo_7Q';
 
 export const api = {
@@ -294,9 +297,71 @@ export const api = {
   },
 
   exportPdf: async () => {
-    // We will just call print on a new window or ignore since pdfkit isn't trivial in browser.
-    // simpler is using browser print
-    window.print();
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    const atds = await atdsRes.json();
+    const pacsRes = await fetch(`${XANO_URL}/pacientes`);
+    const pacs = await pacsRes.json();
+
+    const pacientesArray = Array.isArray(pacs) ? pacs : [];
+    const atendimentosArray = Array.isArray(atds) ? atds : [];
+
+    const relatorioMap = new Map();
+
+    atendimentosArray.forEach((a: any) => {
+       const pac = pacientesArray.find((p: any) => p.id === a.paciente_id) || {};
+       const pacId = a.paciente_id || `unknown-${Math.random()}`;
+
+       let realServico = a.servico;
+       if (typeof a.observacoes === 'string' && a.observacoes.startsWith('{"_sv":')) {
+         try {
+           realServico = JSON.parse(a.observacoes)._sv || a.servico;
+         } catch(e){}
+       }
+
+       if (!relatorioMap.has(pacId)) {
+          relatorioMap.set(pacId, {
+             nome: pac.nome_completo || 'Desconhecido',
+             cpf: pac.cpf || 'N/A',
+             telefone: pac.telefone || 'N/A',
+             cidade: pac.cidade || 'N/A',
+             endereco: pac.endereco || 'N/A',
+             servicos: [],
+             count: 0
+          });
+       }
+
+       const info = relatorioMap.get(pacId);
+       info.servicos.push(realServico);
+       info.count += 1;
+    });
+
+    const doc = new jsPDF('landscape');
+
+    doc.text("Relatório de Atendimentos por Pessoa", 14, 15);
+
+    const tableData: any[][] = [];
+    relatorioMap.forEach((info) => {
+       const uniqueServicos = Array.from(new Set(info.servicos));
+       const servicosStr = uniqueServicos.join(', ');
+
+       tableData.push([
+          info.nome,
+          info.cpf,
+          info.telefone,
+          info.cidade,
+          info.endereco,
+          servicosStr,
+          info.count.toString()
+       ]);
+    });
+
+    autoTable(doc, {
+       head: [['Nome Completo', 'CPF', 'Telefone', 'Cidade', 'Endereço', 'Serviços Realizados', 'Qtd']],
+       body: tableData,
+       startY: 20,
+    });
+
+    doc.save('Relatorio_Atendimentos.pdf');
   },
 
   getUsers: async () => {
