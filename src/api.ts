@@ -127,7 +127,7 @@ export const api = {
         nome_completo: pac.nome_completo,
         cpf: pac.cpf,
         endereco: pac.endereco,
-        called_at: a.called_at || 0
+        called_at: a.updated_at || a.created_at || 0
       };
     }).sort((a: any, b: any) => {
       if (a.status === 'concluido' && b.status !== 'concluido') return 1;
@@ -168,8 +168,7 @@ export const api = {
         status: 'em_atendimento',
         sala,
         observacoes: newObsBody,
-        supervisor_id: supervisor_id || atd.supervisor_id,
-        called_at: Date.now() // Record when called to show on monitor
+        supervisor_id: supervisor_id || atd.supervisor_id
       })
     });
     const updatedAtd = await updateRes.json();
