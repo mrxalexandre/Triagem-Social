@@ -51,6 +51,12 @@ export default function AtendenteView({ user }: { user: User }) {
       .replace(/(-\d{4})\d+?$/, '$1');
   };
 
+  const capitalizeWords = (str: string) => {
+    return str.split(' ')
+      .map(word => word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : '')
+      .join(' ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidCPF(formData.cpf)) {
@@ -124,7 +130,7 @@ export default function AtendenteView({ user }: { user: User }) {
               type="text" required
               className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-300"
               value={formData.nome_completo}
-              onChange={e => setFormData({...formData, nome_completo: e.target.value})}
+              onChange={e => setFormData({...formData, nome_completo: capitalizeWords(e.target.value)})}
             />
           </div>
           <div className="space-y-2">
@@ -168,7 +174,7 @@ export default function AtendenteView({ user }: { user: User }) {
             type="text" 
             className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-300"
             value={formData.endereco}
-            onChange={e => setFormData({...formData, endereco: e.target.value})}
+            onChange={e => setFormData({...formData, endereco: capitalizeWords(e.target.value)})}
           />
         </div>
 

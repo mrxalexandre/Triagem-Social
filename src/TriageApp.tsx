@@ -10,7 +10,23 @@ type Role = 'atendente' | 'supervisor' | 'gestor';
 export interface User { id: number; name: string; role: Role; }
 
 export default function TriageApp() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('user_triage');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('user_triage');
+    setUser(null);
+  };
+
   const [showMonitor, setShowMonitor] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +44,9 @@ export default function TriageApp() {
 
     try {
       const userData = await api.login(email, password);
-      setUser({ id: userData.id, name: userData.name, role: userData.role as Role });
+      const userObj = { id: userData.id, name: userData.name, role: userData.role as Role };
+      setUser(userObj);
+      localStorage.setItem('user_triage', JSON.stringify(userObj));
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
@@ -124,7 +142,7 @@ export default function TriageApp() {
           <span className="text-slate-400 italic hidden sm:inline">Unidade: Centro de Atendimento Social</span>
           <span className="font-semibold text-slate-800">{user.name}</span>
           <button 
-            onClick={() => setUser(null)}
+            onClick={handleLogout}
             className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-700 rounded text-xs font-semibold border border-slate-200 hover:bg-slate-200 transition-colors shadow-sm"
           >
             <LogOut size={14} /> Sair

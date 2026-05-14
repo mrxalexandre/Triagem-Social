@@ -4,12 +4,13 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { Download, FileText, Users, Clock, CheckCircle, LayoutDashboard, MonitorPlay, List } from 'lucide-react';
 import UserManagement from './UserManagement';
 import SupervisorView from './SupervisorView';
+import AtendenteView from './AtendenteView';
 import ServiceManagement from './ServiceManagement';
 import { api } from '../api';
 
 export default function GestorView({ user }: { user: User }) {
   const [stats, setStats] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'supervisor' | 'services'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'supervisor' | 'services' | 'atendente'>('dashboard');
 
   useEffect(() => {
     api.getStats()
@@ -43,6 +44,12 @@ export default function GestorView({ user }: { user: User }) {
             <LayoutDashboard size={16} /> Dashboard
           </button>
           <button 
+            onClick={() => setActiveTab('atendente')}
+            className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'atendente' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+          >
+            <CheckCircle size={16} /> Realizar Triagem
+          </button>
+          <button 
             onClick={() => setActiveTab('supervisor')}
             className={`flex-1 sm:flex-none whitespace-nowrap flex items-center justify-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors ${activeTab === 'supervisor' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
@@ -69,6 +76,8 @@ export default function GestorView({ user }: { user: User }) {
 
       {activeTab === 'users' ? (
         <UserManagement />
+      ) : activeTab === 'atendente' ? (
+        <AtendenteView user={user} />
       ) : activeTab === 'supervisor' ? (
         <SupervisorView user={user} />
       ) : stats ? (

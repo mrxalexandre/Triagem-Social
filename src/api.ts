@@ -3,6 +3,21 @@ import autoTable from 'jspdf-autotable';
 
 export const XANO_URL = 'https://x8ki-letl-twmt.n7.xano.io/api:zXMEo_7Q';
 
+let _updateLock: Promise<void> | null = null;
+async function _withLock<T>(fn: () => Promise<T>): Promise<T> {
+  while (_updateLock) {
+    await _updateLock;
+  }
+  let resolveLock!: () => void;
+  _updateLock = new Promise(r => resolveLock = r);
+  try {
+    return await fn();
+  } finally {
+    _updateLock = null;
+    resolveLock();
+  }
+}
+
 export const api = {
   login: async (email: string, password: string) => {
     if (email === 'camillalessa' && password === 'lp2408') {
@@ -100,10 +115,12 @@ export const api = {
 
   getFila: async () => {
     const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    if (!atdsRes.ok) throw new Error('Falha ao buscar fila (atendimentos)');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
     
     const pacRes = await fetch(`${XANO_URL}/pacientes`);
+    if (!pacRes.ok) throw new Error('Falha ao buscar fila (pacientes)');
     const pacs = await pacRes.json();
     const pacsArray = Array.isArray(pacs) ? pacs : [];
     
@@ -139,82 +156,95 @@ export const api = {
   },
 
   chamar: async (id: number, sala: string, observacoes_supervisor: string, supervisor_id: number) => {
-    const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
-    const atd = await atdRes.json();
-    
-    let baseObs = observacoes_supervisor || '';
-    if (!observacoes_supervisor) {
-       let existingObsRaw = atd.observacoes || '';
-       let extractedObs = existingObsRaw;
-       if (typeof existingObsRaw === 'string' && existingObsRaw.startsWith('{"_sv":')) {
-         try { extractedObs = JSON.parse(existingObsRaw).obs || ''; } catch(e){}
-       }
-       baseObs = extractedObs;
-    }
-    
-    let newObsBody = baseObs;
-    if (typeof atd.observacoes === 'string' && atd.observacoes.startsWith('{"_sv":')) {
-       try {
-          const parsed = JSON.parse(atd.observacoes);
-          newObsBody = JSON.stringify({ _sv: parsed._sv, obs: baseObs });
-       } catch(e) {}
-    }
+    return _withLock(async () => {
+      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
+      const atd = await atdRes.json();
+      
+      let baseObs = observacoes_supervisor || '';
+      if (!observacoes_supervisor) {
+         let existingObsRaw = atd.observacoes || '';
+         let extractedObs = existingObsRaw;
+         if (typeof existingObsRaw === 'string' && existingObsRaw.startsWith('{"_sv":')) {
+           try { extractedObs = JSON.parse(existingObsRaw).obs || ''; } catch(e){}
+         }
+         baseObs = extractedObs;
+      }
+      
+      let newObsBody = baseObs;
+      if (typeof atd.observacoes === 'string' && atd.observacoes.startsWith('{"_sv":')) {
+         try {
+            const parsed = JSON.parse(atd.observacoes);
+            newObsBody = JSON.stringify({ _sv: parsed._sv, obs: baseObs });
+         } catch(e) {}
+      }
 
-    const updateRes = await fetch(`${XANO_URL}/atendimentos/${id}`, {
-      method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        ...atd,
-        status: 'em_atendimento',
-        sala,
-        observacoes: newObsBody,
-        supervisor_id: supervisor_id || atd.supervisor_id
-      })
+      const updateRes = await fetch(`${XANO_URL}/atendimentos/${id}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          ...atd,
+          status: 'em_atendimento',
+          sala,
+          observacoes: newObsBody,
+          supervisor_id: supervisor_id || atd.supervisor_id
+        })
+      });
+      if (!updateRes.ok) throw new Error('Falha ao chamar paciente');
+      const updatedAtd = await updateRes.json();
+      
+      const pacRes = await fetch(`${XANO_URL}/pacientes/${atd.paciente_id}`);
+      if (!pacRes.ok) throw new Error('Falha ao buscar paciente');
+      const pac = await pacRes.json();
+
+      return {
+        senha: updatedAtd.senha,
+        nome_completo: pac.nome_completo,
+        sala: updatedAtd.sala
+      };
     });
-    const updatedAtd = await updateRes.json();
-
-    const pacRes = await fetch(`${XANO_URL}/pacientes/${atd.paciente_id}`);
-    const pac = await pacRes.json();
-
-    return {
-      senha: updatedAtd.senha,
-      nome_completo: pac.nome_completo,
-      sala: updatedAtd.sala
-    };
   },
 
   concluir: async (id: number) => {
-    const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
-    const atd = await atdRes.json();
-    
-    await fetch(`${XANO_URL}/atendimentos/${id}`, {
-      method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ ...atd, status: 'concluido' })
+    return _withLock(async () => {
+      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
+      if (!atdRes.ok) throw new Error('Falha ao buscar atendimento');
+      const atd = await atdRes.json();
+      
+      const updateRes = await fetch(`${XANO_URL}/atendimentos/${id}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ ...atd, status: 'concluido' })
+      });
+      if (!updateRes.ok) throw new Error('Falha ao concluir paciente');
     });
   },
 
   updateObservacoes: async (id: number, observacoes: string) => {
-    const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
-    const atd = await atdRes.json();
-    
-    let baseObs = observacoes;
-    if (typeof atd.observacoes === 'string' && atd.observacoes.startsWith('{"_sv":')) {
-      try {
-        const parsed = JSON.parse(atd.observacoes);
-        baseObs = JSON.stringify({ _sv: parsed._sv, obs: observacoes });
-      } catch(e){}
-    }
+    return _withLock(async () => {
+      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
+      if (!atdRes.ok) throw new Error('Falha ao buscar atendimento');
+      const atd = await atdRes.json();
+      
+      let baseObs = observacoes;
+      if (typeof atd.observacoes === 'string' && atd.observacoes.startsWith('{"_sv":')) {
+        try {
+          const parsed = JSON.parse(atd.observacoes);
+          baseObs = JSON.stringify({ _sv: parsed._sv, obs: observacoes });
+        } catch(e){}
+      }
 
-    await fetch(`${XANO_URL}/atendimentos/${id}`, {
-      method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ ...atd, observacoes: baseObs })
+      const updateRes = await fetch(`${XANO_URL}/atendimentos/${id}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ ...atd, observacoes: baseObs })
+      });
+      if (!updateRes.ok) throw new Error('Falha ao atualizar observações');
     });
   },
 
   getStats: async () => {
     const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    if (!atdsRes.ok) throw new Error('Falha ao buscar estatísticas');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
     
@@ -366,7 +396,7 @@ export const api = {
   getUsers: async () => {
     const res = await fetch(`${XANO_URL}/users`);
     const users = await res.json();
-    return (Array.isArray(users) ? users : []).filter(u => u.email !== 'config_servicos_app@sys.com');
+    return (Array.isArray(users) ? users : []).filter(u => u.email ? !u.email.includes('config') : true);
   },
   createUser: async (data: any) => {
     const res = await fetch(`${XANO_URL}/users`, {
@@ -420,17 +450,19 @@ export const api = {
     const configUser = (Array.isArray(users) ? users : []).find((u: any) => u.email === 'config_servicos_app@sys.com');
     
     if (configUser) {
-      await fetch(`${XANO_URL}/users/${configUser.id}`, {
+      const updateRes = await fetch(`${XANO_URL}/users/${configUser.id}`, {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name: configStr })
+        body: JSON.stringify({ name: configStr, email: configUser.email, password: 'admin', role: configUser.role })
       });
+      if (!updateRes.ok) throw new Error('Falha ao atualizar config');
     } else {
-      await fetch(`${XANO_URL}/users`, {
+      const addRes = await fetch(`${XANO_URL}/users`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ name: configStr, email: 'config_servicos_app@sys.com', password: 'admin', role: 'gestor' })
       });
+      if (!addRes.ok) throw new Error('Falha ao criar config');
     }
   }
 };

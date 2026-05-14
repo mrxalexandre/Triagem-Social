@@ -8,7 +8,11 @@ export default function SupervisorView({ user }: { user: User }) {
   const [loading, setLoading] = useState(true);
   const [activeSala, setActiveSala] = useState('Sala 01');
   
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const getLocalDateString = (d: Date = new Date()) => {
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  };
+
+  const [filterDate, setFilterDate] = useState(getLocalDateString());
   const [filterStatus, setFilterStatus] = useState('todos');
   const [filterServico, setFilterServico] = useState('todos');
 
@@ -30,13 +34,23 @@ export default function SupervisorView({ user }: { user: User }) {
   }, []);
 
   const handleChamar = async (id: number) => {
-    await api.chamar(id, activeSala, '', user.id);
-    loadFila();
+    // Optimistic update
+    setFila(prev => prev.map(item => item.id === id ? { ...item, status: 'em_atendimento', sala: activeSala } : item));
+    try {
+      await api.chamar(id, activeSala, '', user.id);
+    } catch (e) {
+      loadFila(); // Revert on failure
+    }
   };
 
   const handleConcluir = async (id: number) => {
-    await api.concluir(id);
-    loadFila();
+    // Optimistic update
+    setFila(prev => prev.map(item => item.id === id ? { ...item, status: 'concluido' } : item));
+    try {
+      await api.concluir(id);
+    } catch (e) {
+      loadFila(); // Revert on failure
+    }
   };
 
   const updateObservacoes = async (id: number, observacoes: string, defaultObs: string) => {
@@ -47,8 +61,8 @@ export default function SupervisorView({ user }: { user: User }) {
 
   const filteredFila = fila.filter(item => {
     if (filterDate && item.created_at) {
-      const itemDate = new Date(item.created_at).toISOString().split('T')[0];
-      if (itemDate !== filterDate) return false;
+      const itemLocalDate = getLocalDateString(new Date(item.created_at));
+      if (itemLocalDate !== filterDate) return false;
     }
     if (filterStatus !== 'todos' && item.status !== filterStatus) return false;
     if (filterServico !== 'todos' && item.servico !== filterServico) return false;
