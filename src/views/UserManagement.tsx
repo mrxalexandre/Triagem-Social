@@ -18,7 +18,7 @@ export default function UserManagement() {
     // Don't clear error msg on background poll
     if (showLoading) setErrorMsg('');
     
-    api.getUsers()
+    api.getUsers(showLoading)
       .then(data => {
         setUsers(Array.isArray(data) ? data : []);
         setLoading(false);
@@ -33,7 +33,7 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchUsers(true);
-    const interval = setInterval(() => fetchUsers(false), 5000);
+    const interval = setInterval(() => fetchUsers(false), 15000);
     return () => clearInterval(interval);
   }, []);
 

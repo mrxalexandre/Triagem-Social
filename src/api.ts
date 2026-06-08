@@ -113,19 +113,14 @@ export const api = {
     return { id: insertAtd.id, senha };
   },
 
-  getFila: async () => {
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos`, { 
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-    });
+  getFila: async (bustCache: boolean = false) => {
+    const ts = bustCache ? `?_t=${Date.now()}` : '';
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos${ts}`);
     if (!atdsRes.ok) throw new Error('Falha ao buscar fila (atendimentos)');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
     
-    const pacRes = await fetch(`${XANO_URL}/pacientes`, { 
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-    });
+    const pacRes = await fetch(`${XANO_URL}/pacientes${ts}`);
     if (!pacRes.ok) throw new Error('Falha ao buscar fila (pacientes)');
     const pacs = await pacRes.json();
     const pacsArray = Array.isArray(pacs) ? pacs : [];
@@ -248,11 +243,9 @@ export const api = {
     });
   },
 
-  getStats: async () => {
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos`, { 
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-    });
+  getStats: async (bustCache: boolean = false) => {
+    const ts = bustCache ? `?_t=${Date.now()}` : '';
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos${ts}`);
     if (!atdsRes.ok) throw new Error('Falha ao buscar estatísticas');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
@@ -402,11 +395,9 @@ export const api = {
     doc.save('Relatorio_Atendimentos.pdf');
   },
 
-  getUsers: async () => {
-    const res = await fetch(`${XANO_URL}/users`, { 
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-    });
+  getUsers: async (bustCache: boolean = false) => {
+    const ts = bustCache ? `?_t=${Date.now()}` : '';
+    const res = await fetch(`${XANO_URL}/users${ts}`);
     const users = await res.json();
     return (Array.isArray(users) ? users : []).filter(u => u.email ? !u.email.includes('config') : true);
   },

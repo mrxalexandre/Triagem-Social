@@ -19,7 +19,7 @@ export default function SupervisorView({ user }: { user: User }) {
   const loadFila = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
-      const data = await api.getFila();
+      const data = await api.getFila(showLoading);
       setFila(data);
     } catch (e) {
       console.error(e);

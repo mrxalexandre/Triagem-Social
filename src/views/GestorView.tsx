@@ -12,8 +12,8 @@ export default function GestorView({ user }: { user: User }) {
   const [stats, setStats] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'supervisor' | 'services' | 'atendente'>('dashboard');
 
-  const fetchStats = () => {
-    api.getStats()
+  const fetchStats = (bustCache = false) => {
+    api.getStats(bustCache)
       .then(setStats)
       .catch(err => {
         console.error(err);
@@ -22,8 +22,8 @@ export default function GestorView({ user }: { user: User }) {
   };
 
   useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 5000);
+    fetchStats(true);
+    const interval = setInterval(() => fetchStats(false), 15000);
     return () => clearInterval(interval);
   }, []);
 
