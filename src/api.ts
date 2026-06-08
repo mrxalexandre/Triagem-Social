@@ -114,12 +114,18 @@ export const api = {
   },
 
   getFila: async () => {
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos`, { 
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
     if (!atdsRes.ok) throw new Error('Falha ao buscar fila (atendimentos)');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
     
-    const pacRes = await fetch(`${XANO_URL}/pacientes`);
+    const pacRes = await fetch(`${XANO_URL}/pacientes`, { 
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
     if (!pacRes.ok) throw new Error('Falha ao buscar fila (pacientes)');
     const pacs = await pacRes.json();
     const pacsArray = Array.isArray(pacs) ? pacs : [];
@@ -243,7 +249,10 @@ export const api = {
   },
 
   getStats: async () => {
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos`, { 
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
     if (!atdsRes.ok) throw new Error('Falha ao buscar estatísticas');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
@@ -268,9 +277,9 @@ export const api = {
   },
 
   exportCsv: async () => {
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos`, { cache: 'no-store' });
     const atds = await atdsRes.json();
-    const pacsRes = await fetch(`${XANO_URL}/pacientes`);
+    const pacsRes = await fetch(`${XANO_URL}/pacientes`, { cache: 'no-store' });
     const pacs = await pacsRes.json();
 
     const data = (Array.isArray(atds) ? atds : []).map((a: any) => {
@@ -326,9 +335,9 @@ export const api = {
   },
 
   exportPdf: async () => {
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos`, { cache: 'no-store' });
     const atds = await atdsRes.json();
-    const pacsRes = await fetch(`${XANO_URL}/pacientes`);
+    const pacsRes = await fetch(`${XANO_URL}/pacientes`, { cache: 'no-store' });
     const pacs = await pacsRes.json();
 
     const pacientesArray = Array.isArray(pacs) ? pacs : [];
@@ -366,7 +375,7 @@ export const api = {
 
     const doc = new jsPDF('landscape');
 
-    doc.text("Relatório de Atendimentos por Pessoa", 14, 15);
+    doc.text(`Relatório de Atendimentos por Pessoa - Total Geral: ${atendimentosArray.length} atendimentos`, 14, 15);
 
     const tableData: any[][] = [];
     relatorioMap.forEach((info) => {
@@ -394,7 +403,10 @@ export const api = {
   },
 
   getUsers: async () => {
-    const res = await fetch(`${XANO_URL}/users`);
+    const res = await fetch(`${XANO_URL}/users`, { 
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
     const users = await res.json();
     return (Array.isArray(users) ? users : []).filter(u => u.email ? !u.email.includes('config') : true);
   },

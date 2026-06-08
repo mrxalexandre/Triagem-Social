@@ -16,38 +16,38 @@ export default function SupervisorView({ user }: { user: User }) {
   const [filterStatus, setFilterStatus] = useState('todos');
   const [filterServico, setFilterServico] = useState('todos');
 
-  const loadFila = async () => {
+  const loadFila = async (showLoading = false) => {
+    if (showLoading) setLoading(true);
     try {
       const data = await api.getFila();
       setFila(data);
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadFila();
-    const interval = setInterval(loadFila, 30000); // 30 segundos
+    loadFila(true);
+    const interval = setInterval(() => loadFila(false), 5000); // 5 segundos
     return () => clearInterval(interval);
   }, []);
 
   const handleChamar = async (id: number) => {
-    // Optimistic update
     setFila(prev => prev.map(item => item.id === id ? { ...item, status: 'em_atendimento', sala: activeSala } : item));
     try {
       await api.chamar(id, activeSala, '', user.id);
     } catch (e) {
-      loadFila(); // Revert on failure
+      loadFila();
     }
   };
 
   const handleConcluir = async (id: number) => {
-    // Optimistic update
     setFila(prev => prev.map(item => item.id === id ? { ...item, status: 'concluido' } : item));
     try {
       await api.concluir(id);
+      window.alert('Atendimento concluído. Lembre-se de chamar a próxima pessoa selecionada na fila.');
     } catch (e) {
       loadFila(); // Revert on failure
     }
@@ -80,7 +80,7 @@ export default function SupervisorView({ user }: { user: User }) {
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <button 
-            onClick={loadFila}
+            onClick={() => loadFila(true)}
             className="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200 transition-colors shadow-sm whitespace-nowrap"
           >
             <RefreshCw size={16} /> Atualizar Fila

@@ -13,9 +13,11 @@ export default function UserManagement() {
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const fetchUsers = () => {
-    setLoading(true);
-    setErrorMsg('');
+  const fetchUsers = (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    // Don't clear error msg on background poll
+    if (showLoading) setErrorMsg('');
+    
     api.getUsers()
       .then(data => {
         setUsers(Array.isArray(data) ? data : []);
@@ -23,14 +25,16 @@ export default function UserManagement() {
       })
       .catch(err => {
         console.error('Erro fetching users:', err);
-        setErrorMsg('Não foi possível carregar a lista de usuários. Tente novamente mais tarde.');
+        if (showLoading) setErrorMsg('Não foi possível carregar a lista de usuários. Tente novamente mais tarde.');
         setUsers([]);
         setLoading(false);
       });
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(true);
+    const interval = setInterval(() => fetchUsers(false), 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const openNewModal = () => {

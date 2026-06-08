@@ -12,13 +12,19 @@ export default function GestorView({ user }: { user: User }) {
   const [stats, setStats] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'supervisor' | 'services' | 'atendente'>('dashboard');
 
-  useEffect(() => {
+  const fetchStats = () => {
     api.getStats()
       .then(setStats)
       .catch(err => {
         console.error(err);
-        setStats({ aguardando: 0, concluidos: 0, total: 0, byService: [] });
+        setStats(prev => prev || { aguardando: 0, concluidos: 0, total: 0, byService: [] });
       });
+  };
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleExportCSV = () => {
