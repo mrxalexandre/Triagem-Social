@@ -5,7 +5,15 @@ import { api } from '../api';
 
 export default function SupervisorView({ user }: { user: User }) {
   const [fila, setFila] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user.role === 'gestor') {
+      api.getUsers().then(setUsers).catch(() => {});
+    }
+  }, [user.role]);
+
   const [activeSala, setActiveSala] = useState('Sala 01');
   
   const getLocalDateString = (d: Date = new Date()) => {
@@ -15,12 +23,13 @@ export default function SupervisorView({ user }: { user: User }) {
   const [filterDate, setFilterDate] = useState(getLocalDateString());
   const [filterStatus, setFilterStatus] = useState('todos');
   const [filterServico, setFilterServico] = useState('todos');
+  const [filterNome, setFilterNome] = useState('');
 
   const loadFila = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
       const data = await api.getFila(showLoading);
-      setFila(data.filter((item: any) => item.supervisor_id == user.id || !item.supervisor_id));
+      setFila(data.filter((item: any) => user.role === 'gestor' || item.supervisor_id == user.id || !item.supervisor_id));
     } catch (e) {
       // Ignored to avoid error spam on rate limiting
     } finally {
@@ -66,6 +75,10 @@ export default function SupervisorView({ user }: { user: User }) {
     }
     if (filterStatus !== 'todos' && item.status !== filterStatus) return false;
     if (filterServico !== 'todos' && item.servico !== filterServico) return false;
+    if (filterNome) {
+      const q = filterNome.toLowerCase();
+      if (!item.nome_completo?.toLowerCase().includes(q) && !item.cpf?.includes(q)) return false;
+    }
     return true;
   });
 
@@ -76,7 +89,7 @@ export default function SupervisorView({ user }: { user: User }) {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-slate-200 shrink-0 gap-4 sm:gap-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Gestão de Filas</h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">Acompanhe a triagem e chame os pacientes em tempo real.</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Acompanhe a triagem e chame os usuários em tempo real.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <button 
@@ -108,6 +121,16 @@ export default function SupervisorView({ user }: { user: User }) {
             <span className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded uppercase tracking-wider">Ao vivo</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Busca:</span>
+              <input
+                type="text"
+                placeholder="Busque por nome ou CPF..."
+                className="border border-slate-200 text-sm font-semibold text-slate-800 bg-white px-2 py-1 rounded outline-none w-32 sm:w-48"
+                value={filterNome}
+                onChange={(e) => setFilterNome(e.target.value)}
+              />
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Data:</span>
               <input
@@ -155,7 +178,8 @@ export default function SupervisorView({ user }: { user: User }) {
             <thead className="bg-slate-50 sticky top-0 border-b border-slate-100 z-10">
               <tr>
                 <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Senha</th>
-                <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Paciente</th>
+                <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Usuário</th>
+                {user.role === 'gestor' && <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Profissional</th>}
                 <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Serviço</th>
                 <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status / Espera</th>
                 <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Ações</th>
@@ -177,6 +201,13 @@ export default function SupervisorView({ user }: { user: User }) {
                       <div className="font-medium text-slate-800 text-sm">{item.nome_completo}</div>
                       <div className="text-xs text-slate-500 mt-0.5 font-mono">CPF: {item.cpf}</div>
                     </td>
+                    {user.role === 'gestor' && (
+                      <td className="p-4 align-top">
+                        <div className="text-sm text-slate-800 font-medium">
+                          {users.find(u => u.id == item.supervisor_id)?.name || 'Todos/Aberto'}
+                        </div>
+                      </td>
+                    )}
                     <td className="p-4 align-top text-sm text-slate-600 font-medium">
                       {item.servico}
                     </td>
@@ -218,11 +249,11 @@ export default function SupervisorView({ user }: { user: User }) {
                   </tr>
                   {item.status === 'em_atendimento' && (
                     <tr className="bg-green-50/10">
-                      <td colSpan={5} className="p-4 border-b border-slate-100">
+                      <td colSpan={user.role === 'gestor' ? 6 : 5} className="p-4 border-b border-slate-100">
                         <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm flex flex-col gap-4">
                             <div className="grid grid-cols-3 gap-6 text-sm">
                               <div>
-                                <p className="font-bold text-slate-400 text-xs uppercase tracking-wider mb-1">Paciente</p>
+                                <p className="font-bold text-slate-400 text-xs uppercase tracking-wider mb-1">Usuário</p>
                                 <p className="text-slate-800 font-medium">{item.nome_completo}</p>
                               </div>
                               <div>
@@ -251,7 +282,7 @@ export default function SupervisorView({ user }: { user: User }) {
               ))}
               {filteredFila.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500 font-medium text-sm">Nenhum paciente na fila no momento de acordo com os filtros.</td>
+                  <td colSpan={user.role === 'gestor' ? 6 : 5} className="py-12 text-center text-slate-500 font-medium text-sm">Nenhum usuário na fila no momento de acordo com os filtros.</td>
                 </tr>
               )}
             </tbody>

@@ -99,7 +99,7 @@ export default function AtendenteView({ user }: { user: User }) {
         <div className="mx-auto w-16 h-16 bg-green-100 text-green-700 flex items-center justify-center rounded-full mb-4">
           <CheckCircle2 size={32} />
         </div>
-        <h2 className="text-xl font-bold text-slate-900 mb-1">Paciente Triado!</h2>
+        <h2 className="text-xl font-bold text-slate-900 mb-1">Usuário Triado!</h2>
         <p className="text-sm font-medium text-slate-500 mb-6">Aguardando chamada pelo cadastro.</p>
         
         <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 mb-8">

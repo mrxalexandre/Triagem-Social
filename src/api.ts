@@ -51,7 +51,7 @@ export const api = {
         body: JSON.stringify({ nome_completo, cpf, endereco: endereco || 'Não informado', telefone, cidade: cidade || "Olho d'Água das Flores, AL" })
       });
       paciente = await createPacRes.json();
-      if (paciente.code) throw new Error(paciente.message || 'Erro ao criar paciente');
+      if (paciente.code) throw new Error(paciente.message || 'Erro ao criar usuário');
     }
 
     const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
@@ -190,11 +190,11 @@ export const api = {
           supervisor_id: supervisor_id || atd.supervisor_id
         })
       });
-      if (!updateRes.ok) throw new Error('Falha ao chamar paciente');
+      if (!updateRes.ok) throw new Error('Falha ao chamar usuário');
       const updatedAtd = await updateRes.json();
       
       const pacRes = await fetch(`${XANO_URL}/pacientes/${atd.paciente_id}`);
-      if (!pacRes.ok) throw new Error('Falha ao buscar paciente');
+      if (!pacRes.ok) throw new Error('Falha ao buscar usuário');
       const pac = await pacRes.json();
 
       return {
@@ -216,7 +216,7 @@ export const api = {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ ...atd, status: 'concluido' })
       });
-      if (!updateRes.ok) throw new Error('Falha ao concluir paciente');
+      if (!updateRes.ok) throw new Error('Falha ao concluir usuário');
     });
   },
 
