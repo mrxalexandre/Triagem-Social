@@ -19,32 +19,31 @@ export default function ServiceManagement({ onClose }: { onClose: () => void }) 
   };
 
   const handleUpdateGroupName = (index: number, newName: string) => {
-    const newGroups = [...groups];
-    newGroups[index].grupo = newName;
-    setGroups(newGroups);
+    setGroups(prev => prev.map((g, i) => i === index ? { ...g, grupo: newName } : g));
   };
 
   const handleDeleteGroup = (index: number) => {
-    const newGroups = groups.filter((_, i) => i !== index);
-    setGroups(newGroups);
+    setGroups(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleAddService = (groupIndex: number) => {
-    const newGroups = [...groups];
-    newGroups[groupIndex].servicos.push('Novo Serviço');
-    setGroups(newGroups);
+    setGroups(prev => prev.map((g, i) => i === groupIndex ? { ...g, servicos: [...g.servicos, 'Novo Serviço'] } : g));
   };
 
   const handleUpdateService = (groupIndex: number, serviceIndex: number, newName: string) => {
-    const newGroups = [...groups];
-    newGroups[groupIndex].servicos[serviceIndex] = newName;
-    setGroups(newGroups);
+    setGroups(prev => prev.map((g, i) => {
+      if (i !== groupIndex) return g;
+      const newServicos = [...g.servicos];
+      newServicos[serviceIndex] = newName;
+      return { ...g, servicos: newServicos };
+    }));
   };
 
   const handleDeleteService = (groupIndex: number, serviceIndex: number) => {
-    const newGroups = [...groups];
-    newGroups[groupIndex].servicos = newGroups[groupIndex].servicos.filter((_, i) => i !== serviceIndex);
-    setGroups(newGroups);
+    setGroups(prev => prev.map((g, i) => {
+      if (i !== groupIndex) return g;
+      return { ...g, servicos: g.servicos.filter((_: any, sI: number) => sI !== serviceIndex) };
+    }));
   };
 
   const handleSave = async () => {

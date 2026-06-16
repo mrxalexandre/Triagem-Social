@@ -24,7 +24,7 @@ export default function UserManagement() {
         setLoading(false);
       })
       .catch(err => {
-        console.error('Erro fetching users:', err);
+        // Ignored to avoid error spam on rate limiting
         if (showLoading) setErrorMsg('Não foi possível carregar a lista de usuários. Tente novamente mais tarde.');
         setUsers([]);
         setLoading(false);

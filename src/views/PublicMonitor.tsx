@@ -61,7 +61,7 @@ export default function PublicMonitor({ onBack }: { onBack: () => void }) {
     };
     
     fetchEvent();
-    const interval = setInterval(fetchEvent, 5000);
+    const interval = setInterval(fetchEvent, 15000);
     return () => clearInterval(interval);
   }, []);
 

@@ -16,7 +16,7 @@ export default function GestorView({ user }: { user: User }) {
     api.getStats(bustCache)
       .then(setStats)
       .catch(err => {
-        console.error(err);
+        // Ignored to prevent UI error spam on rate limit
         setStats(prev => prev || { aguardando: 0, concluidos: 0, total: 0, byService: [] });
       });
   };

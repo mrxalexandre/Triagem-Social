@@ -22,7 +22,7 @@ export default function SupervisorView({ user }: { user: User }) {
       const data = await api.getFila(showLoading);
       setFila(data);
     } catch (e) {
-      console.error(e);
+      // Ignored to avoid error spam on rate limiting
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -30,7 +30,7 @@ export default function SupervisorView({ user }: { user: User }) {
 
   useEffect(() => {
     loadFila(true);
-    const interval = setInterval(() => loadFila(false), 5000); // 5 segundos
+    const interval = setInterval(() => loadFila(false), 15000); // 15 segundos
     return () => clearInterval(interval);
   }, []);
 

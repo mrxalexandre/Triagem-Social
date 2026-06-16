@@ -427,9 +427,10 @@ export const api = {
     await fetch(`${XANO_URL}/users/${id}`, { method: 'DELETE' });
   },
 
-  getServicosConfig: async () => {
+  getServicosConfig: async (bustCache: boolean = true) => {
     try {
-      const res = await fetch(`${XANO_URL}/users`);
+      const ts = bustCache ? `?_t=${Date.now()}` : '';
+      const res = await fetch(`${XANO_URL}/users${ts}`);
       const users = await res.json();
       const configUser = (Array.isArray(users) ? users : []).find((u: any) => u.email === 'config_servicos_app@sys.com');
       if (configUser && configUser.name && configUser.name.startsWith('[')) {
@@ -448,7 +449,8 @@ export const api = {
 
   saveServicosConfig: async (config: any) => {
     const configStr = JSON.stringify(config);
-    const res = await fetch(`${XANO_URL}/users`);
+    const ts = `?_t=${Date.now()}`;
+    const res = await fetch(`${XANO_URL}/users${ts}`);
     const users = await res.json();
     const configUser = (Array.isArray(users) ? users : []).find((u: any) => u.email === 'config_servicos_app@sys.com');
     
