@@ -27,8 +27,15 @@ export default function PublicMonitor({ onBack }: { onBack: () => void }) {
         // Fila / Aguardando
         const aguard = fila.filter((i: any) => i.status === 'aguardando').slice(0, 2);
 
-        // 1. All Em Atendimento
-        const emAtend = fila.filter((i: any) => i.status === 'em_atendimento').sort((a: any, b: any) => (b.called_at || 0) - (a.called_at || 0)).slice(0, 1);
+        // 1. All Em Atendimento grouped by sala
+        const emAtendTodos = fila.filter((i: any) => i.status === 'em_atendimento').sort((a: any, b: any) => (b.called_at || 0) - (a.called_at || 0));
+        const emAtendMap = new Map();
+        for (const item of emAtendTodos) {
+           if (!emAtendMap.has(item.sala)) {
+              emAtendMap.set(item.sala, item);
+           }
+        }
+        const emAtend = Array.from(emAtendMap.values());
         
         // 2. Concluídos (últimos 5) - most recently updated first
         const concl = fila
@@ -123,21 +130,21 @@ export default function PublicMonitor({ onBack }: { onBack: () => void }) {
           </div>
 
           {/* Em Atendimento Section */}
-          <div className="flex-1 flex flex-col border-b border-slate-800 p-6 overflow-hidden">
-            <h3 className="text-lg font-bold text-slate-400 mb-4 flex items-center gap-2 tracking-wider uppercase">
+          <div className="flex-1 flex flex-col border-b border-slate-800 p-4 lg:p-6 overflow-hidden">
+            <h3 className="text-base lg:text-lg font-bold text-slate-400 mb-2 lg:mb-4 flex items-center gap-2 tracking-wider uppercase">
                <Users size={18} className="text-blue-400" />
                Chamando no Monitor
             </h3>
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-              {emAtendimento.length === 0 && <p className="text-slate-600 font-medium">Nenhum atendimento no momento.</p>}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+              {emAtendimento.length === 0 && <p className="text-slate-600 text-sm font-medium">Nenhum atendimento no momento.</p>}
               
               {emAtendimento.map((item, idx) => (
-                <div key={`em-${item.id}-${idx}`} className={`bg-slate-800/50 border border-slate-700 p-4 rounded-xl shadow-sm ${item.id === called?.id ? 'ring-2 ring-blue-500' : ''}`}>
-                  <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-2xl font-bold text-slate-200">{item.senha}</h4>
-                    <span className="text-sm font-bold bg-slate-700 px-3 py-1 rounded-full text-amber-400">{item.sala}</span>
+                <div key={`em-${item.id}-${idx}`} className={`bg-slate-800/50 border border-slate-700 p-2 lg:p-3 rounded-xl shadow-sm ${item.id === called?.id ? 'ring-2 ring-blue-500' : ''}`}>
+                  <div className="flex justify-between items-center mb-0.5">
+                    <h4 className="text-lg lg:text-xl font-bold text-slate-200">{item.senha}</h4>
+                    <span className="text-xs font-bold bg-slate-700 px-2 flex items-center h-5 lg:h-6 rounded-full text-amber-400">{item.sala}</span>
                   </div>
-                  <p className="text-slate-400 text-base truncate font-medium">{item.nome_completo}</p>
+                  <p className="text-slate-400 text-sm lg:text-base truncate font-medium">{item.nome_completo}</p>
                 </div>
               ))}
             </div>

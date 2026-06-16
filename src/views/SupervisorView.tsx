@@ -20,7 +20,7 @@ export default function SupervisorView({ user }: { user: User }) {
     if (showLoading) setLoading(true);
     try {
       const data = await api.getFila(showLoading);
-      setFila(data);
+      setFila(data.filter((item: any) => item.supervisor_id == user.id || !item.supervisor_id));
     } catch (e) {
       // Ignored to avoid error spam on rate limiting
     } finally {

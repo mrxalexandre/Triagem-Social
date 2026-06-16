@@ -38,7 +38,7 @@ export const api = {
   },
 
   createTriagem: async (data: any) => {
-    const { nome_completo, cpf, endereco, servico, prioridade, atendente_id, telefone, cidade } = data;
+    const { nome_completo, cpf, endereco, servico, prioridade, atendente_id, telefone, cidade, supervisor_id, sala } = data;
 
     const pacRes = await fetch(`${XANO_URL}/pacientes`);
     const pacientes = await pacRes.json();
@@ -100,8 +100,8 @@ export const api = {
         status: 'aguardando',
         prioridade: !!prioridade,
         atendente_id,
-        supervisor_id: 1, // fallback se precisar
-        sala: 'Aguardando',
+        supervisor_id: supervisor_id || 1, // use selected supervisor_id
+        sala: sala || 'Aguardando',
         observacoes: initialObs
       })
     });

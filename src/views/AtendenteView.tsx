@@ -12,13 +12,16 @@ export default function AtendenteView({ user }: { user: User }) {
     endereco: '',
     cidade: "Olho d'Água das Flores, AL",
     servico: '',
-    prioridade: false
+    prioridade: false,
+    supervisor_id: '',
+    sala: 'Sala 01'
   });
   
   const [ticket, setTicket] = useState<{ id: number, senha: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [serviceGroups, setServiceGroups] = useState<any[]>([]);
+  const [profissionais, setProfissionais] = useState<any[]>([]);
 
   useEffect(() => {
     api.getServicosConfig().then(groups => {
@@ -27,6 +30,12 @@ export default function AtendenteView({ user }: { user: User }) {
         setFormData(prev => ({ ...prev, servico: groups[0].servicos[0] }));
       }
     });
+    api.getUsers().then(users => {
+      setProfissionais(users);
+      if (users.length > 0) {
+        setFormData(prev => ({ ...prev, supervisor_id: users[0].id.toString() }));
+      }
+    }).catch(() => {});
   }, []);
 
   const isValidCPF = (cpf: string) => {
@@ -178,7 +187,7 @@ export default function AtendenteView({ user }: { user: User }) {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-slate-100 pt-6 mt-6">
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Serviço Necessário</label>
             <select 
@@ -196,17 +205,47 @@ export default function AtendenteView({ user }: { user: User }) {
             </select>
           </div>
 
-          <div className="flex items-center pt-6">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
-                checked={formData.prioridade}
-                onChange={e => setFormData({...formData, prioridade: e.target.checked})}
-              />
-              <span className="text-sm font-semibold text-slate-700">Atendimento Prioritário</span>
-            </label>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Profissional</label>
+            <select 
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+              value={formData.supervisor_id}
+              onChange={e => setFormData({...formData, supervisor_id: e.target.value})}
+            >
+              <option value="">(Nenhum / Aberto)</option>
+              {profissionais.map(p => (
+                <option key={p.id} value={p.id}>{p.name} ({p.role})</option>
+              ))}
+            </select>
           </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sala</label>
+            <select 
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+              value={formData.sala}
+              onChange={e => setFormData({...formData, sala: e.target.value})}
+            >
+              {Array.from({ length: 15 }).map((_, i) => (
+                <option key={i} value={`Sala ${String(i+1).padStart(2, '0')}`}>Sala {String(i+1).padStart(2, '0')}</option>
+              ))}
+              <option value="Triagem">Triagem</option>
+              <option value="Consultório">Consultório</option>
+              <option value="Recepção">Recepção</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center pt-2">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input 
+              type="checkbox" 
+              className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+              checked={formData.prioridade}
+              onChange={e => setFormData({...formData, prioridade: e.target.checked})}
+            />
+            <span className="text-sm font-semibold text-slate-700">Atendimento Prioritário</span>
+          </label>
         </div>
 
         <div className="pt-4 flex justify-end">
