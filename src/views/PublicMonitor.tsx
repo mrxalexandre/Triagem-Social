@@ -25,16 +25,16 @@ export default function PublicMonitor({ onBack }: { onBack: () => void }) {
         lastDataRef.current = dataHash;
         
         // Fila / Aguardando
-        const aguard = fila.filter((i: any) => i.status === 'aguardando');
+        const aguard = fila.filter((i: any) => i.status === 'aguardando').slice(0, 2);
 
         // 1. All Em Atendimento
-        const emAtend = fila.filter((i: any) => i.status === 'em_atendimento').sort((a: any, b: any) => (b.called_at || 0) - (a.called_at || 0));
+        const emAtend = fila.filter((i: any) => i.status === 'em_atendimento').sort((a: any, b: any) => (b.called_at || 0) - (a.called_at || 0)).slice(0, 1);
         
         // 2. Concluídos (últimos 5) - most recently updated first
         const concl = fila
           .filter((i: any) => i.status === 'concluido')
           .sort((a: any, b: any) => (b.called_at || 0) - (a.called_at || 0))
-          .slice(0, 5);
+          .slice(0, 3);
         
         setAguardando(aguard);
 
