@@ -47,6 +47,7 @@ export default function SupervisorView({ user }: { user: User }) {
     setFila(prev => prev.map(item => item.id === id ? { ...item, status: 'em_atendimento', sala: activeSala } : item));
     try {
       await api.chamar(id, activeSala, '', user.id);
+      loadFila(true);
     } catch (e) {
       loadFila();
     }
@@ -57,6 +58,7 @@ export default function SupervisorView({ user }: { user: User }) {
     try {
       await api.concluir(id);
       window.alert('Atendimento concluído. Lembre-se de chamar a próxima pessoa selecionada na fila.');
+      loadFila(true);
     } catch (e) {
       loadFila(); // Revert on failure
     }

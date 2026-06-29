@@ -40,7 +40,7 @@ export const api = {
   createTriagem: async (data: any) => {
     const { nome_completo, cpf, endereco, servico, prioridade, atendente_id, telefone, cidade, supervisor_id, sala } = data;
 
-    const pacRes = await fetch(`${XANO_URL}/pacientes`);
+    const pacRes = await fetch(`${XANO_URL}/pacientes`, { cache: 'no-store' });
     const pacientes = await pacRes.json();
     let paciente = Array.isArray(pacientes) ? pacientes.find((p: any) => p.cpf === cpf) : null;
     
@@ -54,7 +54,7 @@ export const api = {
       if (paciente.code) throw new Error(paciente.message || 'Erro ao criar usuário');
     }
 
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos`);
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos`, { cache: 'no-store' });
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
     
@@ -115,12 +115,12 @@ export const api = {
 
   getFila: async (bustCache: boolean = false) => {
     const ts = bustCache ? `?_t=${Date.now()}` : '';
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos${ts}`);
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos${ts}`, { cache: 'no-store' });
     if (!atdsRes.ok) throw new Error('Falha ao buscar fila (atendimentos)');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
     
-    const pacRes = await fetch(`${XANO_URL}/pacientes${ts}`);
+    const pacRes = await fetch(`${XANO_URL}/pacientes${ts}`, { cache: 'no-store' });
     if (!pacRes.ok) throw new Error('Falha ao buscar fila (pacientes)');
     const pacs = await pacRes.json();
     const pacsArray = Array.isArray(pacs) ? pacs : [];
@@ -158,7 +158,7 @@ export const api = {
 
   chamar: async (id: number, sala: string, observacoes_supervisor: string, supervisor_id: number) => {
     return _withLock(async () => {
-      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
+      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`, { cache: 'no-store' });
       const atd = await atdRes.json();
       
       let baseObs = observacoes_supervisor || '';
@@ -193,7 +193,7 @@ export const api = {
       if (!updateRes.ok) throw new Error('Falha ao chamar usuário');
       const updatedAtd = await updateRes.json();
       
-      const pacRes = await fetch(`${XANO_URL}/pacientes/${atd.paciente_id}`);
+      const pacRes = await fetch(`${XANO_URL}/pacientes/${atd.paciente_id}`, { cache: 'no-store' });
       if (!pacRes.ok) throw new Error('Falha ao buscar usuário');
       const pac = await pacRes.json();
 
@@ -207,7 +207,7 @@ export const api = {
 
   concluir: async (id: number) => {
     return _withLock(async () => {
-      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
+      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`, { cache: 'no-store' });
       if (!atdRes.ok) throw new Error('Falha ao buscar atendimento');
       const atd = await atdRes.json();
       
@@ -222,7 +222,7 @@ export const api = {
 
   updateObservacoes: async (id: number, observacoes: string) => {
     return _withLock(async () => {
-      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`);
+      const atdRes = await fetch(`${XANO_URL}/atendimentos/${id}`, { cache: 'no-store' });
       if (!atdRes.ok) throw new Error('Falha ao buscar atendimento');
       const atd = await atdRes.json();
       
@@ -245,7 +245,7 @@ export const api = {
 
   getStats: async (bustCache: boolean = false) => {
     const ts = bustCache ? `?_t=${Date.now()}` : '';
-    const atdsRes = await fetch(`${XANO_URL}/atendimentos${ts}`);
+    const atdsRes = await fetch(`${XANO_URL}/atendimentos${ts}`, { cache: 'no-store' });
     if (!atdsRes.ok) throw new Error('Falha ao buscar estatísticas');
     const atds = await atdsRes.json();
     const atdsArray = Array.isArray(atds) ? atds : [];
